@@ -1,4 +1,6 @@
 <script setup>
+import BaseButton from '@/components/base-button.vue'
+
 import { ref, computed } from 'vue'
 
 const ConfigVariant = {
@@ -33,12 +35,17 @@ const configVariants = ref([
   },
 ])
 
-const styleVariant = ref('-default')
-const configVariant = computed(() => {
-  return configVariants.value
+const activeVariant = ref('-default')
+const checkedConfig = computed(() => {
+  const configs = configVariants.value
     .filter((variant) => variant.checked)
-    .map((variant) => generateVariantClass(variant.name))
-    .join(' ')
+    .map((variant) => variant.name.replace(' ', '-').toLowerCase())
+
+  return Object.fromEntries(
+    configs.map((variant) => {
+      return [variant, true]
+    }),
+  )
 })
 
 const generateVariantClass = (variant) => {
@@ -48,7 +55,7 @@ const generateVariantClass = (variant) => {
 }
 
 const onClickStyleVariant = (variant) => {
-  styleVariant.value = generateVariantClass(variant)
+  activeVariant.value = generateVariantClass(variant)
 }
 
 const onClickConfigVariant = (variant) => {
@@ -108,7 +115,7 @@ const onClickConfigVariant = (variant) => {
         :class="[
           'option',
           {
-            '-active': styleVariant === `-${variant.toLowerCase()}`,
+            '-active': activeVariant === `-${variant.toLowerCase()}`,
           },
         ]"
         v-for="variant in styleVariants"
@@ -118,16 +125,8 @@ const onClickConfigVariant = (variant) => {
         {{ variant }}
       </div>
     </div>
-    <div :class="['preview-content', styleVariant, configVariant]">
-      <div class="icon -none-text">
-        <img src="@/assets/logo.svg" width="24" height="24px" />
-      </div>
-
-      <div class="button-box">
-        <img class="icon -prepend" src="@/assets/logo.svg" width="18" height="18" />
-        <div class="text">BUTTON</div>
-        <img class="icon -append" src="@/assets/logo.svg" width="18" height="18" />
-      </div>
+    <div class="preview-content">
+      <base-button :variant="activeVariant" v-bind="checkedConfig"> BUTTON </base-button>
     </div>
     <div class="config-variant">
       <div class="title">Configuration</div>
@@ -180,75 +179,6 @@ const onClickConfigVariant = (variant) => {
   > .style-variant > .option.-active {
     background-color: #fff;
     background-color: #606060;
-  }
-
-  > .preview-content {
-    grid-area: content;
-    border-right: 1px solid #333;
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    height: 300px;
-    font-size: 14px;
-  }
-
-  > .preview-content > .icon {
-    width: 48px;
-    height: 48px;
-    display: none;
-    justify-content: center;
-    align-items: center;
-    border-radius: 50%;
-  }
-
-  > .preview-content > .button-box {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    padding: 10px 16px;
-    border-radius: 4px;
-    cursor: pointer;
-  }
-
-  > .preview-content.-default > .button-box,
-  > .preview-content.-default > .icon {
-    box-shadow: 3px 3px 5px 0px rgba(0, 0, 0, 0.75);
-  }
-
-  > .preview-content.-outlined > .button-box,
-  > .preview-content.-outlined > .icon {
-    border: 1px solid #fff;
-  }
-
-  > .preview-content.-tonal > .button-box,
-  > .preview-content.-tonal > .icon {
-    background-color: rgb(47, 47, 47);
-  }
-
-  > .preview-content.-plain > .button-box,
-  > .preview-content.-plain > .icon {
-    opacity: 0.62;
-  }
-  > .preview-content.-icon > .button-box {
-    display: none;
-  }
-
-  > .preview-content.-icon > .icon {
-    display: flex;
-  }
-
-  > .preview-content.-prepend-icon > .button-box > .icon.-prepend,
-  > .preview-content.-append-icon > .button-box > .icon.-append {
-    display: block;
-  }
-
-  > .preview-content.-stacked > .button-box {
-    flex-direction: column;
-  }
-
-  > .preview-content > .button-box > .icon {
-    display: none;
   }
 
   > .config-variant {
