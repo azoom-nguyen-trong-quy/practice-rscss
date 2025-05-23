@@ -3,9 +3,7 @@ import ButtonPreview from './components/button-preview.vue'
 </script>
 
 <template>
-  <main>
-    <button-preview />
-  </main>
+  <button-preview />
 </template>
 
 <style scoped>
