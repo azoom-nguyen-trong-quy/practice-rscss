@@ -1,23 +1,34 @@
 <script setup>
 import { ref, computed } from 'vue'
 
+const ConfigVariant = {
+  ICON: 1,
+  PREPEND_ICON: 2,
+  APPEND_ICON: 3,
+  STACKED: 4,
+}
+
 const styleVariants = ['Default', 'Outlined', 'Tonal', 'Text', 'Plain']
 
 const configVariants = ref([
   {
     name: 'Icon',
+    value: ConfigVariant.ICON,
     checked: false,
   },
   {
     name: 'Prepend icon',
+    value: ConfigVariant.PREPEND_ICON,
     checked: false,
   },
   {
     name: 'Append icon',
+    value: ConfigVariant.APPEND_ICON,
     checked: false,
   },
   {
     name: 'Stacked',
+    value: ConfigVariant.STACKED,
     checked: false,
   },
 ])
@@ -41,17 +52,51 @@ const onClickStyleVariant = (variant) => {
 }
 
 const onClickConfigVariant = (variant) => {
-  if (variant.name === 'Icon') {
+  //Rule xử lý nếu click vào Icon thì sẽ uncheck các variant khác
+  if (variant.value === ConfigVariant.ICON) {
     configVariants.value.forEach((item) => {
-      if (item.name !== 'Icon') {
+      if (item.value !== ConfigVariant.ICON) {
         item.checked = false
       }
     })
   } else {
-    const iconVariant = configVariants.value.find((item) => item.name === 'Icon')
-    if (iconVariant) {
-      iconVariant.checked = false
+    //nếu uncheck thì không xử lý gì cả
+    if (!variant.checked) {
+      return
     }
+
+    const prependVariant = configVariants.value.find(
+      (item) => item.value === ConfigVariant.PREPEND_ICON,
+    )
+    const appendVariant = configVariants.value.find(
+      (item) => item.value === ConfigVariant.APPEND_ICON,
+    )
+    const stackedVariant = configVariants.value.find((item) => item.value === ConfigVariant.STACKED)
+
+    configVariants.value.forEach((item) => {
+      switch (item.value) {
+        case ConfigVariant.ICON: //Không click vào icon thì mặc định uncheck
+          item.checked = false
+          break
+        case ConfigVariant.PREPEND_ICON:
+          //Nếu stacked và append đang check thì uncheck prepend
+          if (stackedVariant.checked && variant.value === ConfigVariant.APPEND_ICON) {
+            item.checked = false
+          } else if (stackedVariant.checked) {
+            //Nếu stacked đang check thì mặc định check prepend
+            item.checked = true
+          }
+          break
+        case ConfigVariant.APPEND_ICON:
+          //nếu stacked check và prepend đang check thì uncheck append
+          if (stackedVariant.checked && prependVariant.checked) {
+            item.checked = false
+          }
+          break
+        case ConfigVariant.STACKED:
+          break
+      }
+    })
   }
 }
 </script>
@@ -85,7 +130,14 @@ const onClickConfigVariant = (variant) => {
       </div>
     </div>
     <div class="config-variant">
-      <div class="option" v-for="(variant, index) in configVariants" :key="index">
+      <div class="title">Configuration</div>
+      <div
+        class="option"
+        v-for="(variant, index) in configVariants"
+        :key="index"
+        :checked="variant.checked"
+      >
+        <i :class="[variant.checked ? '-checked' : '-uncheck', 'check']" />
         <input type="checkbox" @change="onClickConfigVariant(variant)" v-model="variant.checked" />
         <span>{{ variant.name }}</span>
       </div>
@@ -103,6 +155,7 @@ const onClickConfigVariant = (variant) => {
   grid-template-areas:
     'header header'
     'content sidebar';
+  grid-template-columns: 3fr 1fr;
   color: #fff;
 
   > .style-variant {
@@ -111,6 +164,7 @@ const onClickConfigVariant = (variant) => {
     padding: 8px;
     gap: 8px;
     background-color: #424242;
+    font-size: 12px;
   }
 
   > .style-variant > .option {
@@ -135,6 +189,7 @@ const onClickConfigVariant = (variant) => {
     justify-content: center;
     align-items: center;
     height: 300px;
+    font-size: 14px;
   }
 
   > .preview-content > .icon {
@@ -198,6 +253,47 @@ const onClickConfigVariant = (variant) => {
 
   > .config-variant {
     grid-area: sidebar;
+    padding: 16px;
+  }
+
+  > .config-variant > .title,
+  > .config-variant > .option {
+    height: 40px;
+  }
+
+  > .config-variant > .title {
+    color: rgb(255 255 255 / 70%);
+    font-size: 14px;
+  }
+
+  > .config-variant > .option {
+    font-size: 16px;
+    display: flex;
+    gap: 4px;
+    align-items: center;
+    position: relative;
+  }
+
+  > .config-variant > .option > .check {
+    width: 24px;
+    height: 24px;
+    background-color: #fff;
+  }
+
+  > .config-variant > .option > .check.-checked {
+    mask-image: url('@/assets/check.svg');
+  }
+
+  > .config-variant > .option > .check.-uncheck {
+    mask-image: url('@/assets/uncheck.svg');
+  }
+
+  > .config-variant > .option > input {
+    width: 28px;
+    height: 28px;
+    position: absolute;
+    opacity: 0;
+    cursor: pointer;
   }
 }
 </style>
